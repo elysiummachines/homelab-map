@@ -37,13 +37,17 @@ jobs:
         shell: bash
         run: |
           PREV_TAG=$(git tag --sort=-version:refname | grep -v "^$(git describe --tags --abbrev=0)$" | head -n1)
-          COMMITS=$(git log ${PREV_TAG}..HEAD --oneline | awk '{hash=$1; $1=""; printf "["hash"](${{ github.server_url }}/${{ github.repository }}/commit/"hash")"substr($0,2)"\n"}')
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --oneline | awk '{hash=$1; $1=""; printf "["hash"](${{ github.server_url }}/${{ github.repository }}/commit/"hash")"substr($0,2)"\n"}')
+          else
+            COMMITS=$(git log ${PREV_TAG}..HEAD --oneline | awk '{hash=$1; $1=""; printf "["hash"](${{ github.server_url }}/${{ github.repository }}/commit/"hash")"substr($0,2)"\n"}')
+          fi
           echo "notes<<EOF" >> $GITHUB_OUTPUT
           echo "## Changelog" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${PREV_TAG}...${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/commits/${{ github.ref_name }}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
