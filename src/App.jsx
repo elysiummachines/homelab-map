@@ -15,9 +15,24 @@ function ParticleCanvas() {
     let animId;
     let particles = [];
 
+    const isMobileDevice = window.innerWidth <= 768;
+    let baseW = isMobileDevice ? screen.width : window.innerWidth;
+    let baseH = isMobileDevice ? screen.height : window.innerHeight;
+
     function resize() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (isMobileDevice) {
+        const newW = screen.width;
+        const newH = screen.height;
+        if (Math.abs(newW - baseW) > 50 || Math.abs(newH - baseH) > 50) {
+          baseW = newW;
+          baseH = newH;
+        }
+        canvas.width  = baseW;
+        canvas.height = baseH;
+      } else {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
     }
 
     function init() {
@@ -410,50 +425,114 @@ function SshNode({ node, x, y, onClick, active }) {
   );
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth <= breakpoint);
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return mobile;
+}
+
+function FirewallCard({ rule }) {
+  const isBlock = rule.action === "BLOCK";
+  return (
+    <div style={{
+      background: "#0d1117",
+      border: `1px solid ${isBlock ? "#e74c3c44" : "#2ecc7133"}`,
+      borderLeft: `3px solid ${isBlock ? "#e74c3c" : "#2ecc71"}`,
+      borderRadius: 6,
+      padding: "8px 10px",
+      marginBottom: 6,
+      fontFamily: "'Courier New', monospace",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <span style={{ color: isBlock ? "#e74c3c" : "#2ecc71", fontWeight: "bold", fontSize: 12 }}>{rule.action}</span>
+        <span style={{
+          background: rule.iface === "WAN" ? "#e85d0022" : rule.iface === "WG" ? "#9b59b622" : "#a855f722",
+          color: rule.iface === "WAN" ? "#e85d00" : rule.iface === "WG" ? "#9b59b6" : "#a855f7",
+          padding: "1px 6px", borderRadius: 3, fontSize: 9, fontWeight: "bold", letterSpacing: 1,
+        }}>{rule.iface}</span>
+      </div>
+      <div style={{ color: "#e6e1e1", fontSize: 11, marginBottom: 2, fontWeight: "bold" }}>{rule.desc}</div>
+      <div style={{ color: "#888", fontSize: 10, lineHeight: 1.5, wordBreak: "break-all" }}>
+        {rule.proto} · {rule.src} → {rule.dst}
+      </div>
+    </div>
+  );
+}
+
+function FlowCardMobile({ flow }) {
+  return (
+    <div style={{
+      background: "#0d1117",
+      border: `1px solid ${flow.ok ? "#2ecc7133" : "#e74c3c33"}`,
+      borderLeft: `3px solid ${flow.ok ? "#2ecc71" : "#e74c3c"}`,
+      borderRadius: 6,
+      padding: "7px 10px",
+      marginBottom: 5,
+      fontFamily: "'Courier New', monospace",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+        <span style={{ color: flow.ok ? "#2ecc71" : "#e74c3c", fontWeight: "bold", fontSize: 12 }}>{flow.ok ? "✓" : "✗"}</span>
+        <span style={{ color: "#fff", fontSize: 11 }}>{flow.from}</span>
+        <span style={{ color: "#555", fontSize: 9 }}>→</span>
+        <span style={{ color: "#ccc", fontSize: 11 }}>{flow.to}</span>
+      </div>
+      <div style={{ color: "#777", fontSize: 10, paddingLeft: 17 }}>{flow.note}</div>
+    </div>
+  );
+}
+
 export default function App() {
   const [active, setActive] = useState(null);
   const [tab, setTab] = useState("diagram");
   const [sshActive, setSshActive] = useState(null);
   const activeNode = active ? nodes[active] : null;
   const handleClick = (id) => setActive(active === id ? null : id);
+  const isMobile = useIsMobile();
+
+  const diagramViewBox = isMobile ? "-100 15 1000 700" : "-20 30 780 680";
 
   return (
     <div style={{
       background:"#080c10", minHeight:"100vh",
       display:"flex", flexDirection:"column", alignItems:"center", width:"100vw",
-      fontFamily:"'Courier New', monospace", padding:"24px", color:"#ccc",
-      position:"relative",
+      fontFamily:"'Courier New', monospace", padding: isMobile ? "12px 4px" : "24px", color:"#ccc",
+      position:"relative", boxSizing:"border-box", overflowX:"hidden",
     }}>
       <ParticleCanvas />
 
-      <main style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", width:"100%" }}>
+      <main style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", width:"100%", maxWidth:"100%" }}>
 
-        <div style={{ color:"#00d4ff", fontSize:20, letterSpacing:4, marginBottom:4, opacity:0.6 }}>
+        <div style={{ color:"#00d4ff", fontSize: isMobile ? 10 : 20, letterSpacing: isMobile ? 1 : 4, marginBottom:4, opacity:0.6, textAlign:"center" }}>
           HA-CLUSTER.ELYSIUMMACHINES
         </div>
-        <h1 style={{ color:"#fff", fontSize:23, letterSpacing:2, marginBottom:12, fontWeight:"normal", textAlign:"center" }}>
+        <h1 style={{ color:"#fff", fontSize: isMobile ? 14 : 23, letterSpacing: isMobile ? 1 : 2, marginBottom: isMobile ? 4 : 12, fontWeight:"normal", textAlign:"center" }}>
           HOMELAB NETWORK MAP
         </h1>
-        <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#f0f0f0", fontSize:18, letterSpacing:2, marginBottom:22 }}>
+        <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#f0f0f0", fontSize: isMobile ? 9 : 18, letterSpacing: isMobile ? 0.5 : 2, marginBottom: isMobile ? 12 : 22, textAlign:"center" }}>
           OPNsense · WireGuard · Proxmox · Docker . Portainer . Qnap
         </div>
 
-        <div style={{ display:"flex", gap:2, marginBottom:50 }}>
+        <div style={{ display:"flex", gap: isMobile ? 3 : 2, marginBottom: isMobile ? 16 : 50, flexWrap:"wrap", justifyContent:"center" }}>
           {["diagram","firewall","SSH","flows"].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               background: tab===t ? "#00d4ff18" : "transparent",
               border:`1px solid ${tab===t ? "#bbb7b5" : "#b3b6bd"}`,
               color: tab===t ? "#00d4ff" : "#f5ecec",
-              padding:"6px 18px", borderRadius:4, cursor:"pointer",
-              fontFamily:"'JetBrains Mono', monospace", fontSize:18, letterSpacing:2,
+              padding: isMobile ? "4px 10px" : "6px 18px", borderRadius:4, cursor:"pointer",
+              fontFamily:"'JetBrains Mono', monospace", fontSize: isMobile ? 11 : 18, letterSpacing: isMobile ? 1 : 2,
               textTransform:"uppercase", transition:"all 0.2s",
             }}>{t}</button>
           ))}
         </div>
 
+        {/* ===================== DIAGRAM TAB ===================== */}
         {tab === "diagram" && (<>
           <div style={{ width:"100%", maxWidth:"1400px", margin:"0 auto" }}>
-            <svg viewBox="-20 30 780 680" width="100%" style={{ overflow:"visible" }}>
+            <svg viewBox={diagramViewBox} width="100%" style={{ overflow:"visible" }}>
               <defs>
                 {arrowDefs.map(([id,fill]) => (
                   <marker key={id} id={id} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -518,7 +597,7 @@ export default function App() {
             </svg>
           </div>
 
-          <div style={{ display:"flex", flexWrap:"wrap", gap:16, marginTop:10, fontSize:20, color:"#e6e1e1", letterSpacing:1, justifyContent:"center" }}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap: isMobile ? 5 : 16, marginTop: isMobile ? 4 : 10, fontSize: isMobile ? 10 : 20, color:"#e6e1e1", letterSpacing:1, justifyContent:"center", padding: isMobile ? "0 8px" : 0, width: isMobile ? "100%" : undefined, boxSizing:"border-box" }}>
             <span><span style={{color:"#e85d00"}}>--</span> WAN</span>
             <span><span style={{color:"#ff6b35"}}>--</span> Proxmox</span>
             <span><span style={{color:"#2ecc71"}}>--</span> Callisto VLAN</span>
@@ -531,70 +610,97 @@ export default function App() {
 
           {activeNode && (
             <div style={{
-              marginTop:16, padding:"12px 24px", background:"#0d1117",
+              marginTop:12, padding: isMobile ? "8px 10px" : "12px 24px", background:"#0d1117",
               border:`2px solid ${activeNode.color}44`, borderRadius:6,
-              color:activeNode.color, fontSize:15, letterSpacing:1,
-              maxWidth:600, textAlign:"center",
+              color:activeNode.color, fontSize: isMobile ? 11 : 15, letterSpacing:1,
+              maxWidth: isMobile ? "100%" : 600, textAlign:"center",
+              width: isMobile ? "calc(100% - 16px)" : undefined,
+              boxSizing:"border-box", wordWrap:"break-word", overflowWrap:"break-word",
+              margin: isMobile ? "12px 8px 0" : undefined,
             }}>
-              <div style={{ fontWeight:"bold", marginBottom:6 }}>{activeNode.icon} {activeNode.label} — {activeNode.ip}</div>
-              {activeNode.note && <div style={{ color:"#dad7d7", lineHeight:1.9, fontSize:12 }}>{activeNode.note}</div>}
+              <div style={{ fontWeight:"bold", marginBottom:4 }}>{activeNode.icon} {activeNode.label} — {activeNode.ip}</div>
+              {activeNode.note && <div style={{ color:"#dad7d7", lineHeight:1.7, fontSize: isMobile ? 10 : 12, wordWrap:"break-word", overflowWrap:"break-word" }}>{activeNode.note}</div>}
             </div>
           )}
-          <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#ccc6c6", fontSize:18, marginTop:12, letterSpacing:2 }}>click any node for details</div>
+          <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#ccc6c6", fontSize: isMobile ? 11 : 18, marginTop:8, letterSpacing:2, textAlign:"center" }}>
+            {isMobile ? "tap any node for details" : "click any node for details"}
+          </div>
         </>)}
 
+        {/* ===================== FIREWALL TAB ===================== */}
         {tab === "firewall" && (
           <div style={{ width:"100%", maxWidth:820 }}>
-            <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#f5f1f1", fontSize:18, letterSpacing:2, marginBottom:14, textAlign:"center" }}>OPNSENSE FIREWALL RULES</div>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:16 }}>
-              <thead>
-                <tr>{["IFACE","ACTION","PROTO","SOURCE","DESTINATION","DESCRIPTION"].map(h => (
-                  <th key={h} style={{ padding:"8px 10px", borderBottom:"1px solid #f1f1f1", color:"#e85d00", textAlign:"left", letterSpacing:1 }}>{h}</th>
-                ))}</tr>
-              </thead>
-              <tbody>
-                {firewallRules.map((r,i) => (
-                  <tr key={i} style={{ borderBottom:"1px solid #0a0d12" }}>
-                    <td style={{ padding:"7px 10px", color:"#ccc" }}>{r.iface}</td>
-                    <td style={{ padding:"7px 10px", color:r.action==="PASS" ? "#2ecc71" : "#e74c3c", fontWeight:"bold" }}>{r.action}</td>
-                    <td style={{ padding:"7px 10px", color:"#aaa" }}>{r.proto}</td>
-                    <td style={{ padding:"7px 10px", color:"#ccc", fontFamily:"monospace", fontSize:13 }}>{r.src}</td>
-                    <td style={{ padding:"7px 10px", color:"#ccc", fontFamily:"monospace", fontSize:13 }}>{r.dst}</td>
-                    <td style={{ padding:"7px 10px", color:"#ccc" }}>{r.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ marginTop:14, padding:"16px 20px", background:"#0d1117", border:"2px solid #d8dadf", borderRadius:5, fontSize:16, color:"#ffffff", lineHeight:1.9 }}>
+            <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#f5f1f1", fontSize: isMobile ? 12 : 18, letterSpacing:2, marginBottom: isMobile ? 10 : 14, textAlign:"center" }}>OPNSENSE FIREWALL RULES</div>
+
+            {isMobile ? (
+              <div style={{ padding: "0 2px" }}>
+                {firewallRules.map((r, i) => <FirewallCard key={i} rule={r} />)}
+              </div>
+            ) : (
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:16 }}>
+                <thead>
+                  <tr>{["IFACE","ACTION","PROTO","SOURCE","DESTINATION","DESCRIPTION"].map(h => (
+                    <th key={h} style={{ padding:"8px 10px", borderBottom:"1px solid #f1f1f1", color:"#e85d00", textAlign:"left", letterSpacing:1 }}>{h}</th>
+                  ))}</tr>
+                </thead>
+                <tbody>
+                  {firewallRules.map((r,i) => (
+                    <tr key={i} style={{ borderBottom:"1px solid #0a0d12" }}>
+                      <td style={{ padding:"7px 10px", color:"#ccc" }}>{r.iface}</td>
+                      <td style={{ padding:"7px 10px", color:r.action==="PASS" ? "#2ecc71" : "#e74c3c", fontWeight:"bold" }}>{r.action}</td>
+                      <td style={{ padding:"7px 10px", color:"#aaa" }}>{r.proto}</td>
+                      <td style={{ padding:"7px 10px", color:"#ccc", fontFamily:"monospace", fontSize:13 }}>{r.src}</td>
+                      <td style={{ padding:"7px 10px", color:"#ccc", fontFamily:"monospace", fontSize:13 }}>{r.dst}</td>
+                      <td style={{ padding:"7px 10px", color:"#ccc" }}>{r.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <div style={{ marginTop: isMobile ? 10 : 14, padding: isMobile ? "10px 10px" : "16px 20px", background:"#0d1117", border:"2px solid #d8dadf", borderRadius:5, fontSize: isMobile ? 11 : 16, color:"#ffffff", lineHeight:1.9, textAlign:"center" }}>
               <span style={{color:"#e85d00"}}>⚠ NOTE: </span>WIP, high level view, I am no networking guru but I love networking!!
             </div>
           </div>
         )}
 
+        {/* ===================== FLOWS TAB ===================== */}
         {tab === "flows" && (
           <div style={{ width:"100%", maxWidth:780 }}>
-            <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#fafafa", fontSize:18, letterSpacing:2, marginBottom:14, textAlign:"center" }}>TRAFFIC FLOW MATRIX</div>
-            {flows.map((f,i) => (
-              <div key={i} style={{
-                display:"flex", alignItems:"center", gap:10,
-                padding:"11px 16px", marginBottom:6,
-                background:"#0d1117",
-                border:`1px solid ${f.ok ? "#2ecc7144" : "#e74c3c44"}`,
-                borderRadius:5, fontSize:15,
-              }}>
-                <div style={{ color:"#fff", minWidth:200, fontFamily:"monospace" }}>{f.from}</div>
-                <div style={{ color:"#22d811" }}>→</div>
-                <div style={{ color:"#fff", flex:1, fontFamily:"monospace" }}>{f.to}</div>
-                <div style={{ color:f.ok ? "#2ecc71" : "#e74c3c", fontWeight:"bold", fontSize:16, minWidth:18 }}>{f.ok ? "✓" : "✗"}</div>
-                <div style={{ color:"#f3f3f3", fontSize:13, minWidth:240, textAlign:"right" }}>{f.note}</div>
+            <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#fafafa", fontSize: isMobile ? 12 : 18, letterSpacing:2, marginBottom: isMobile ? 10 : 14, textAlign:"center" }}>TRAFFIC FLOW MATRIX</div>
+
+            {isMobile ? (
+              <div style={{ padding: "0 2px" }}>
+                {flows.map((f, i) => <FlowCardMobile key={i} flow={f} />)}
               </div>
-            ))}
+            ) : (
+              flows.map((f,i) => (
+                <div key={i} style={{
+                  display:"flex", alignItems:"center", gap:10,
+                  padding:"11px 16px", marginBottom:6,
+                  background:"#0d1117",
+                  border:`1px solid ${f.ok ? "#2ecc7144" : "#e74c3c44"}`,
+                  borderRadius:5, fontSize:15,
+                }}>
+                  <div style={{ color:"#fff", minWidth:200, fontFamily:"monospace" }}>{f.from}</div>
+                  <div style={{ color:"#22d811" }}>→</div>
+                  <div style={{ color:"#fff", flex:1, fontFamily:"monospace" }}>{f.to}</div>
+                  <div style={{ color:f.ok ? "#2ecc71" : "#e74c3c", fontWeight:"bold", fontSize:16, minWidth:18 }}>{f.ok ? "✓" : "✗"}</div>
+                  <div style={{ color:"#f3f3f3", fontSize:13, minWidth:240, textAlign:"right" }}>{f.note}</div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
+        {/* ===================== SSH TAB ===================== */}
         {tab === "SSH" && (
           <div style={{ width:"100%", maxWidth:800 }}>
-            <svg width="800" height="630" style={{ overflow:"visible" }}>
+            <svg
+              viewBox="0 10 800 600"
+              width="100%"
+              style={{ overflow:"visible" }}
+            >
               <defs>
                 <marker id="sarrow-cyan"   markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#00d4ff"/></marker>
                 <marker id="sarrow-green"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#00ff9d"/></marker>
@@ -629,14 +735,14 @@ export default function App() {
               })}
             </svg>
 
-            <div style={{ display:"flex", gap:24, marginTop:-25, fontSize:15, color:"#f3efef", letterSpacing:1, justifyContent:"center" }}>
+            <div style={{ display:"flex", gap: isMobile ? 8 : 24, marginTop: isMobile ? 4 : -25, fontSize: isMobile ? 10 : 15, color:"#f3efef", letterSpacing:1, justifyContent:"center", flexWrap:"wrap" }}>
               <span><span style={{color:"#00d4ff"}}>--</span> SSH from laptop</span>
               <span><span style={{color:"#00ff9d"}}>--</span> DK01 gateway access</span>
               <span><span style={{color:"#a855f7"}}>--</span> Node → PVE (pubkey only)</span>
             </div>
 
             {sshActive && sshNodes[sshActive] && (
-              <div style={{ marginTop:24, padding:"24px 40px", background:"#0d1117", border:`1px solid ${sshNodes[sshActive].color}44`, borderRadius:6, color:sshNodes[sshActive].color, fontSize:16, letterSpacing:1, textAlign:"center" }}>
+              <div style={{ marginTop: isMobile ? 10 : 24, padding: isMobile ? "10px 12px" : "24px 40px", background:"#0d1117", border:`1px solid ${sshNodes[sshActive].color}44`, borderRadius:6, color:sshNodes[sshActive].color, fontSize: isMobile ? 12 : 16, letterSpacing:1, textAlign:"center" }}>
                 <div style={{ fontWeight:"bold", marginBottom:4 }}>{sshNodes[sshActive].label} - {sshNodes[sshActive].sublabel}</div>
                 {sshNodes[sshActive].note && <div style={{ color:"#f3f3f3", marginTop:5 }}>{sshNodes[sshActive].note}</div>}
                 {sshNodes[sshActive].canSSHtoPVE && <div style={{ color:"#a855f7", marginTop:4 }}>✦ Can SSH to both PVE hosts via pubkey</div>}
