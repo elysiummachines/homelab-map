@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-03-15
+
+- Added docker-compose.yaml for lightweight nginx:alpine deployment
+- Added Docker deployment guide to README
+- Traefik reverse proxy labels included
+- Portainer stack instructions
+- Resource limits and health check configured
+
 ## [0.2.0] - 2026-03-15
 
 - Mobile-responsive layout for all tabs

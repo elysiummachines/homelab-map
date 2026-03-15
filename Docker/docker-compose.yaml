@@ -1,0 +1,41 @@
+services:
+  homelab-map:
+    image: nginx:alpine
+    container_name: homelab-map
+   # ports:
+   #   - 8585:80
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+          cpus: "1.0"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q --spider http://localhost || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homelab-map-secure.entrypoints=https
+      - traefik.http.routers.homelab-map-secure.rule=Host(`homelab-map.local.YOUR_DOMAIN`)
+      - traefik.http.routers.homelab-map-secure.tls=true
+      - traefik.http.routers.homelab-map-secure.tls.certresolver=cloudflare
+      - traefik.http.routers.homelab-map-secure.service=homelab-map
+      - traefik.http.services.homelab-map.loadbalancer.server.port=80
+
+networks:
+  proxy:
+    external: true
