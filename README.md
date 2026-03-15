@@ -4,6 +4,7 @@
 **An interactive visual map of my homelab infrastructure, devices, and network topology.**
 
 [![Release](https://img.shields.io/github/v/release/elysiummachines/homelab-map?style=flat-square&color=blue)](https://github.com/elysiummachines/homelab-map/releases)
+[![Downloads](https://img.shields.io/github/downloads/elysiummachines/homelab-map/total?style=flat-square&color=ff0000)](https://github.com/elysiummachines/homelab-map/releases)
 [![Node](https://img.shields.io/badge/Node-v18+-green?style=flat-square)](https://nodejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-React-cyan?style=flat-square)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-grey.svg?style=flat-square)](LICENSE)
