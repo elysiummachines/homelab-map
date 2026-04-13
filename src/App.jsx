@@ -66,7 +66,7 @@ function ParticleCanvas() {
           if (dist < MAX_DIST) {
             const alpha = 1 - dist / MAX_DIST;
             ctx.beginPath();
-            ctx.strokeStyle = a.color + Math.floor(alpha * 40).toString(16).padStart(2,"0");
+            ctx.strokeStyle = "#888888" + Math.floor(alpha * 40).toString(16).padStart(2,"0");
             ctx.lineWidth = 0.6;
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
@@ -134,7 +134,7 @@ function ParticleCanvas() {
 const nodes = {
   internet: {
     id: "internet", label: "INTERNET", sublabel: "upstream",
-    ip: "—", type: "internet", icon: "🌐", color: "#e85d00",
+    ip: "—", type: "internet", icon: "🌐", color: "#f7f7f7",
   },
   cloudflare: {
     id: "cloudflare", label: "CLOUDFLARE", sublabel: "*.domain",
@@ -143,114 +143,145 @@ const nodes = {
   },
   asus: {
     id: "asus", label: "ASUS RT-AX5400", sublabel: "gateway",
-    ip: "10.x.x.x", type: "router", icon: "🛜", color: "#db9ad3",
+    ip: "10.100.x.x", type: "router", icon: "⛩️", color: "#db9ad3",
     note: "Home router - no port forwarding needed — Cloudflare handles external",
   },
   switch: {
-    id: "switch", label: "HP 1810-24G", sublabel: "managed switch",
-    ip: "10.x.x.x", type: "switch", icon: "🔀", color: "#264db9",
-    note: "Port 3+5: TRK1 LACP → QNAP | Port 11: VLAN → pve | Port 13: VLAN → pve2",
+    id: "switch", label: "Cisco SG300", sublabel: "managed switch",
+    ip: "VLAN", type: "switch", icon: "🔀", color: "#264db9",
+    note: "Port 2+3: TRK1 LACP > QNAP | Port 11: VLAN > pve | Port 13: VLAN > pve2",
+  },
+  ap: {
+    id: "ap", label: "U6-LITE", sublabel: "access point",
+    ip: "10.60.x.x", type: "ap", icon: "🛜", color: "#f0a500",
+    note: "UniFi U6-Lite | 2.4GHz + 5GHz | PoE from Cisco SG300 | for Client Vlan",
   },
   opnsense: {
     id: "opnsense", label: "SW01 (OPNsense)", sublabel: "VM 800 - pve",
-    ip: "WAN 10.x | LAN 40.x", type: "firewall", icon: "🛡️", color: "#e85d00",
-    note: "Unbound DNS → Pi-holes | Kea DHCPv4 40.x.x.x-x | WireGuard Int :PORT | NAT | Isolation rules",
+    ip: "WAN 10.x | LAN 10.x", type: "firewall", icon: "🛡️", color: "#e85d00",
+    note: "Unbound DNS → Pi-holes | Kea DHCPv4 10.x.x.x-x | WireGuard Int :PORT | NAT | Isolation rules",
   },
   pve: {
     id: "pve", label: "PVE", sublabel: "pve.prod.lan",
-    ip: "10.x.x.x", type: "proxmox", icon: "☊", color: "#ff6b35",
-    note: "SSH :3xxx | vmbr0 (mgmt) | Callisto1 bridge VLAN | Cluster: Node-1",
+    ip: "10.20.x.x", type: "proxmox", icon: "☊", color: "#ff6b35",
+    note: "SSH :3xxx | vmbr0 (mgmt) | MGMT VLAN | Cluster: Node-1",
   },
   pve2: {
     id: "pve2", label: "PVE2", sublabel: "pve2.prod.lan",
-    ip: "10.x.x.x", type: "proxmox", icon: "☋", color: "#ff6b35",
-    note: "SSH :3xxx | vmbr0 (mgmt) | Callisto01 bridge VLAN | Cluster: Node-2",
+    ip: "10.20.x.x", type: "proxmox", icon: "☋", color: "#ff6b35",
+    note: "SSH :3xxx | vmbr0 (mgmt) | MGMT VLAN | Cluster: Node-2",
   },
   pihole1: {
     id: "pihole1", label: "PH01", sublabel: "Pi-hole 1 - VM 103",
-    ip: "10.x.x.x", type: "dns", icon: "🕳", color: "#3498db",
+    ip: "10.100.x.x", type: "dns", icon: "🕳️", color: "#12f312",
     note: "STAYS on vmbr0 forever - DNS filtering | Upstream: Unbound on OPNsense",
   },
   pihole2: {
     id: "pihole2", label: "PH02", sublabel: "Pi-hole 2 - VM 104",
-    ip: "10.x.x.x", type: "dns", icon: "🕳", color: "#3498db",
+    ip: "10.100.x.x", type: "dns", icon: "🕳️", color: "#12f312",
     note: "STAYS on vmbr0 forever - DNS filtering | Upstream: Unbound on OPNsense",
   },
   qdevice: {
     id: "qdevice", label: "QDEVICE", sublabel: "Quorum - VM 200",
-    ip: "10.x.x.x", type: "quorum", icon: "⚖", color: "#f39c12",
+    ip: "10.20.x.x", type: "quorum", icon: "⚖", color: "#ff6b35",
     note: "Alpine Linux - Proxmox cluster quorum",
   },
   qnap: {
     id: "qnap", label: "QNAP SAN/NAS", sublabel: "storage",
-    ip: "10.x.x.x", type: "storage", icon: "💽", color: "#16a085",
+    ip: "10.100.x.x", type: "storage", icon: "💽", color: "#16a085",
     note: "LACP bond TRK1 to HP switch | NFS + SMB storage for Proxmox VMs",
   },
   liger: {
     id: "liger", label: "LIGER", sublabel: "lp.liger.lan",
-    ip: "10.x.x.x", type: "client", icon: "💻", color: "#00d4ff",
+    ip: "10.100.x.x", type: "client", icon: "💻", color: "#ff0000",
     note: "Asgard-vpn WireGuard via KDE NetworkManager | peer 10.x.x.x | Split tunnel | nmcli never-default",
   },
   storageswitch: {
     id: "storageswitch", label: "STORAGE SW", sublabel: "dumb switch - isolated",
-    ip: "10.x.x.x/24", type: "switch", icon: "🔀", color: "#16a085",
+    ip: "10.10.x.x/24", type: "switch", icon: "🔀", color: "#16a085",
     note: "Isolated storage network - no internet, no routing | QNAP NIC1+NIC2 → pve eno4 (10.x.x.x) + pve2 eno4 (10.x.x.x)",
   },
   wireguard: {
     id: "wireguard", label: "WG TUNNEL", sublabel: "Asgard-vpn",
-    ip: "10.x.x.x/24", type: "vpn", icon: "🔐", color: "#9b59b6",
-    note: "Split tunnel - only 40.x.x.x + 10.x.x.x via VPN | Internet stays local | DNS via Pi-holes on connect",
+    ip: "10.10.x.x/24", type: "vpn", icon: "🔐", color: "#ff0000",
+    note: "Split tunnel | Internet stays local | DNS via Pi-holes on connect",
   },
   node1: {
-    id: "node1", label: "NODE-1", sublabel: "Prod - stack",
-    ip: "40.x.x.x", type: "docker", icon: "📦", color: "#a855f7",
-    note: "Portainer + Docker | 53.5GB RAM | 9 CPU | 53 Containers/33 Stacks",
+    id: "node1", label: "PROD", sublabel: "Prod - stack",
+    ip: "10.30.x.x", type: "docker", icon: "📦", color: "#a855f7",
+    note: "Docker Compose + Portainer | 53.5GB RAM | 11 CPU | 24-Containers 21-Stacks 33-Images",
   },
   node2: {
-    id: "node2", label: "NODE-2", sublabel: "Traefik - stack",
-    ip: "40.x.x.x", type: "docker", icon: "📦", color: "#a855f7",
-    note: "Traefik | 13 containers | tcp://node2-prod:9001 | 4.1GB RAM",
+    id: "node2", label: "AGENT", sublabel: "Traefik - stack",
+    ip: "10.30.x.x", type: "docker", icon: "📦", color: "#a855f7",
+    note: "Docker Compose + Portainer | 04.1GB RAM | 6 CPU | 22-Containers 17-Stacks 17-Images",
   },
   node3: {
-    id: "node3", label: "NODE-3", sublabel: "Twingate - stack",
-    ip: "40.x.x.x", type: "docker", icon: "📦", color: "#a855f7",
-    note: "Twingate ZTNA | 13 containers | tcp://node3-prod:9001 | 4.1 RAM",
+    id: "node3", label: "CONNECTORS", sublabel: "Twingate - stack",
+    ip: "10.30.x.x", type: "docker", icon: "📦", color: "#a855f7",
+    note: "Docker Compose + Portainer | 04.1GB RAM | 6 CPU | 14-Containers 4-Stacks 6-Images",
   },
   node4: {
-    id: "node4", label: "NODE-4", sublabel: "LLM - stack",
-    ip: "40.x.x.x", type: "docker", icon: "🧠", color: "#a855f7",
-    note: "LLM inference | 4 containers | tcp://node4-prod:9001 | 110.8GB RAM",
+    id: "node4", label: "LLM/QA", sublabel: "LLM - stack",
+    ip: "10.30.x.x", type: "docker", icon: "🧠", color: "#a855f7",
+    note: "Docker Compose + Portainer | 110.8GB RAM | 12 CPU | 9-Containers 6-Stacks 9-Images",
+  },
+    k3s_master: {
+    id: "k3s_master", label: "MASTER", sublabel: "k3s-master",
+    ip: "10.30.x.x", type: "k3s", icon: "⎈", color: "#a855f7",
+    note: "K3s control plane node",
+  },
+  k3s_worker1: {
+    id: "k3s_worker1", label: "WORKER-1", sublabel: "k3s-worker-1",
+    ip: "10.30.x.x", type: "k3s", icon: "⎈", color: "#a855f7",
+    note: "K3s worker node",
+  },
+  k3s_worker2: {
+    id: "k3s_worker2", label: "WORKER-2", sublabel: "k3s-worker-2",
+    ip: "10.30.x.x", type: "k3s", icon: "⎈", color: "#a855f7",
+    note: "K3s worker node",
+  },
+  k3s_worker3: {
+    id: "k3s_worker3", label: "WORKER-3", sublabel: "k3s-worker-3",
+    ip: "10.30.x.x", type: "k3s", icon: "⎈", color: "#a855f7",
+    note: "K3s worker node",
   },
 };
 
 const connections = [
-  { from: "internet",      to: "asus",           label: "",            color: "#e85d00", style: "solid", offset: 0 },
-  { from: "internet",      to: "cloudflare",     label: "outbound",    color: "#e67e22", style: "solid", offset: 0 },
-  { from: "asus",          to: "switch",         label: "",            color: "#e85d00", style: "solid", offset: 0 },
-  { from: "switch",        to: "opnsense",       label: "WAN+LAN",     color: "#e85d00", style: "solid", offset: 0, labelOffsetX: 30 },
-  { from: "switch",        to: "pve",            label: "vmbr0",       color: "#ff6b35", style: "solid", offset: 0 },
-  { from: "switch",        to: "qnap",           label: "LACP",        color: "#16a085", style: "solid", offset: 0 },
-  { from: "opnsense",      to: "node1",          label: "LAN/DHCP",    color: "#a855f7", style: "solid", offset: 0, labelOffsetX: -4 },
-  { from: "opnsense",      to: "wireguard",      label: "",            color: "#9b59b6", style: "solid", offset: 0 },
-  { from: "opnsense",      to: "pihole1",        label: "DNS fwd",     color: "#3498db", style: "solid", offset: -20 },
-  { from: "opnsense",      to: "pihole2",        label: "DNS fwd",     color: "#3498db", style: "solid", offset: 20 },
-  { from: "liger",         to: "wireguard",      label: "vpn",         color: "#9b59b6", style: "solid", offset: 0, labelOffsetX: 5 },
-  { from: "wireguard",     to: "node1",          label: "split tunnel",color: "#9b59b6", style: "solid", offset: 0 },
-  { from: "cloudflare",    to: "node2",          label: "→ Traefik",   color: "#e67e22", style: "solid", offset: 0 },
+  { from: "internet",      to: "asus",           label: "",            color: "#fbfbfb", style: "solid", offset: 0 },
+  { from: "internet",      to: "cloudflare",     label: "outbound",    color: "#fbfbfb", style: "solid", offset: 0, customRoute: "short-cloudflare" },
+  { from: "asus",          to: "switch",         label: "",            color: "#db9ad3", style: "solid", offset: 0 },
+  { from: "switch",        to: "opnsense",       label: "WAN+LAN",     color: "#264db9", style: "solid", offset: 0, labelOffsetX: 30 },
+  { from: "switch",        to: "pve",            label: "vmbr0",       color: "#264db9", style: "solid", offset: 0 },
+  { from: "switch",        to: "qnap",           label: "LACP",        color: "#16a085", style: "solid", offset: 0, customRoute: "around-storage" },
+  { from: "switch",        to: "ap",             label: "PoE",         color: "#f0a500", style: "solid", offset: 0 },
+  { from: "opnsense",      to: "node1",          label: "LAN/DHCP",    color: "#a855f7", style: "solid", offset: 0, labelOffsetX: -4, customRoute: "opnsense-to-srvrs-mid" },
+  { from: "wireguard",     to: "k3s_master",     label: "",            color: "#d10a0afd", style: "solid", offset: 0, customRoute: "wg-to-k3s" },
+  { from: "opnsense",      to: "wireguard",      label: "",            color: "#d10a0afd", style: "solid", offset: 0 },
+  { from: "opnsense",      to: "pihole1",        label: "DNS fwd",     color: "#12f312", style: "solid", offset: -20 },
+  { from: "opnsense",      to: "pihole2",        label: "DNS fwd",     color: "#12f312", style: "solid", offset: 20 },
+  { from: "liger",         to: "wireguard",      label: "vpn",         color: "#d10a0afd", style: "solid", offset: 0, labelOffsetX: 5 },
+  { from: "wireguard",     to: "node1",          label: "split tunnel",color: "#d10a0afd", style: "solid", offset: 0, customRoute: "wg-to-prod" },
+  { from: "cloudflare",    to: "node2",          label: "Traefik",     color: "#e67e22", style: "solid", offset: 0 },
   { from: "qnap",          to: "node1",          label: "iSCSI",       color: "#16a085", style: "solid", offset: 0 },
-  { from: "pve",           to: "pihole1",        label: "",            color: "#3498db", style: "solid", offset: 0 },
+  { from: "pve",           to: "pihole1",        label: "",            color: "#12f312", style: "solid", offset: 0 },
   { from: "node1",         to: "node2",          label: "",            color: "#a855f7", style: "solid", offset: 0 },
   { from: "node1",         to: "node3",          label: "",            color: "#6366f1", style: "solid", offset: 0 },
   { from: "node1",         to: "node4",          label: "",            color: "#6366f1", style: "solid", offset: 0 },
+  { from: "k3s_master",    to: "k3s_worker1",    label: "",            color: "#a855f7", style: "solid", offset: 0 },
+  { from: "k3s_master",    to: "k3s_worker2",    label: "",            color: "#6366f1", style: "solid", offset: 0 },
+  { from: "k3s_master",    to: "k3s_worker3",    label: "",            color: "#6366f1", style: "solid", offset: 0 },
   { from: "qnap",          to: "storageswitch",  label: "NIC1+2",      color: "#16a085", style: "solid", offset: 0, labelOffsetX: 10 },
-  { from: "storageswitch", to: "pve",            label: "eno4",        color: "#16a085", style: "solid", offset: -20 },
-  { from: "storageswitch", to: "pve2",           label: "eno4",        color: "#16a085", style: "solid", offset: 20 },
+  { from: "storageswitch", to: "pve",            label: "eno4",        color: "#16a085", style: "solid", offset: 0, customRoute: "around-piholes" },
+  { from: "storageswitch", to: "pve2",           label: "eno4",        color: "#16a085", style: "solid", offset: 0, customRoute: "around-piholes" },
 ];
 
 const positions = {
   internet:      { x: 50,  y: 55  },
   cloudflare:    { x: 650, y: 51  },
   asus:          { x: 50,  y: 165 },
+  ap:            { x: 220, y: 165 },
   switch:        { x: 50,  y: 280 },
   qnap:          { x: 805, y: 140 },
   storageswitch: { x: 805, y: 235 },
@@ -266,6 +297,10 @@ const positions = {
   node2:         { x: 332, y: 555 },
   node3:         { x: 473, y: 555 },
   node4:         { x: 615, y: 555 },
+  k3s_master:    { x: 190, y: 660 },
+  k3s_worker1:   { x: 332, y: 660 },
+  k3s_worker2:   { x: 473, y: 660 },
+  k3s_worker3:   { x: 615, y: 660 },
 };
 
 const arrowDefs = [
@@ -273,6 +308,7 @@ const arrowDefs = [
   ["arr-blue","#3498db"],["arr-purple","#9b59b6"],["arr-yellow","#e67e22"],
   ["arr-violet","#a855f7"],["arr-indigo","#6366f1"],["arr-coral","#ff6b35"],
   ["arr-teal","#16a085"],["arr-amber","#f39c12"],["arr-grey","#888"],
+  ["arr-silver","#666"],
 ];
 
 function getArrow(color) {
@@ -281,12 +317,48 @@ function getArrow(color) {
     "#3498db":"arr-blue","#9b59b6":"arr-purple","#e67e22":"arr-yellow",
     "#a855f7":"arr-violet","#6366f1":"arr-indigo","#ff6b35":"arr-coral",
     "#16a085":"arr-teal","#f39c12":"arr-amber","#888":"arr-grey",
+    "#16a085":"arr-teal","#f39c12":"arr-amber","#f0a500":"arr-gold","#888":"arr-grey",
   };
   return map[color] || "arr-grey";
 }
 
-function getElbowPath(from, to, offset = 0) {
+function getElbowPath(from, to, offset = 0, customRoute = null) {
   const PAD = 30;
+  if (customRoute === "around-storage") {
+    return {
+      d: `M ${from.x} ${from.y - PAD} L ${from.x} 210 L 680 210 L 680 ${to.y} L 740 ${to.y}`,
+      lx: 385, ly: 203,
+    };
+  }
+  if (customRoute === "short-cloudflare") {
+    const x1 = from.x + 64;
+    const x2 = to.x - 66;
+    return { d: `M ${x1} ${from.y} L ${x2} ${to.y}`, lx: (x1+x2)/2, ly: from.y - 8 };
+  }
+  if (customRoute === "around-piholes") {
+    return {
+      d: `M ${from.x} ${from.y + PAD} L 720 ${from.y + PAD} L 720 ${to.y} L ${to.x + 64} ${to.y}`,
+      lx: 369, ly: to.y - 8,
+    };
+  }
+  if (customRoute === "opnsense-to-srvrs-mid") {
+    return {
+      d: `M ${from.x} ${from.y + PAD} L 715 ${from.y + PAD} L 715 607 L 695 607`,
+      lx: 446, ly: 373,
+    };
+  }
+  if (customRoute === "wg-to-k3s") {
+    return {
+      d: `M ${from.x} ${from.y + PAD} L ${from.x} 705 L ${to.x} 705 L ${to.x} ${to.y + PAD}`,
+      lx: 498, ly: 698,
+    };
+  }
+  if (customRoute === "wg-to-prod") {
+    return {
+      d: `M ${from.x - 64} ${from.y} L 695 ${from.y} L 695 607 L ${to.x} 607 L ${to.x} ${to.y + 30}`,
+      lx: 498, ly: 600,
+    };
+  }
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   if (Math.abs(dx) < 8) {
@@ -310,21 +382,22 @@ function getElbowPath(from, to, offset = 0) {
 
 function NodeBox({ node, x, y, onClick, active }) {
   const w = 128;
+  const SILVER = "#666";
   return (
     <g transform={`translate(${x},${y})`} onClick={() => onClick(node.id)} style={{ cursor: "pointer" }}>
       <rect x={-w/2} y={-30} width={w} height={60} rx={8}
         fill={active ? node.color+"22" : "#0d1117"}
-        stroke={active ? node.color : node.color+"55"}
+        stroke={active ? node.color : SILVER}
         strokeWidth={active ? 2 : 1}
         style={{ filter: active ? `drop-shadow(0 0 10px ${node.color})` : "none", transition: "all 0.2s" }}
       />
-      <text x={0} y={-8} textAnchor="middle" fill={node.color} fontSize={10} fontFamily="'JetBrains Mono', monospace" fontWeight="bold">
+      <text x={0} y={-8} textAnchor="middle" fill={active ? node.color : SILVER} fontSize={10} fontFamily="'JetBrains Mono', monospace" fontWeight="bold">
         {node.icon} {node.label}
       </text>
-      <text x={0} y={8} textAnchor="middle" fill="#e4dddd" fontSize={9} fontFamily="'JetBrains Mono', monospace">
+      <text x={0} y={8} textAnchor="middle" fill={active ? "#e4dddd" : "#555"} fontSize={9} fontFamily="'JetBrains Mono', monospace">
         {node.sublabel}
       </text>
-      <text x={0} y={18} textAnchor="middle" fill="#b9b2b2" fontSize={9} fontFamily="'JetBrains Mono', monospace">
+      <text x={0} y={18} textAnchor="middle" fill={active ? "#b9b2b2" : "#444"} fontSize={9} fontFamily="'JetBrains Mono', monospace">
         {node.ip}
       </text>
     </g>
@@ -497,7 +570,7 @@ export default function App() {
 
   return (
     <div style={{
-      background:"#080c10", minHeight:"100vh",
+      background:"#111318", minHeight:"100vh",
       display:"flex", flexDirection:"column", alignItems:"center", width:"100vw",
       fontFamily:"'Courier New', monospace", padding: isMobile ? "12px 4px" : "24px", color:"#ccc",
       position:"relative", boxSizing:"border-box", overflowX:"hidden",
@@ -513,7 +586,7 @@ export default function App() {
           HOMELAB NETWORK MAP
         </h1>
         <div style={{ fontFamily:"'JetBrains Mono', monospace", color:"#f0f0f0", fontSize: isMobile ? 9 : 18, letterSpacing: isMobile ? 0.5 : 2, marginBottom: isMobile ? 12 : 22, textAlign:"center" }}>
-          OPNsense · WireGuard · Proxmox · Docker . Portainer . Qnap
+          K3s . OPNsense · WireGuard · Proxmox · Docker . Portainer . Qnap
         </div>
 
         <div style={{ display:"flex", gap: isMobile ? 3 : 2, marginBottom: isMobile ? 16 : 50, flexWrap:"wrap", justifyContent:"center" }}>
@@ -543,42 +616,49 @@ export default function App() {
 
               {/* Zone backgrounds */}
               <rect x={-92} y={430} width={160} height={240} rx={5} fill="none" stroke="#e66916ce" strokeDasharray="5 3" strokeWidth={1}/>
-              <text x={-52} y={427} fill="#e66916ce" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>MANAGEMENT 10.x.x.x</text>
+              <text x={-84} y={427} fill="#e66916ce" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>MGMT 10.20.x.x - VLAN-20</text>
 
-              <rect x={730} y={460} width={150} height={180} rx={5} fill="none" stroke="#00d3f8fd" strokeDasharray="5 3" strokeWidth={1}/>
-              <text x={767} y={457} fill="#00d3f8fd" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>WIREGUARD 10.x.x.x</text>
+              <rect x={730} y={460} width={150} height={180} rx={5} fill="none" stroke="#d10a0afd" strokeDasharray="5 3" strokeWidth={1}/>
+              <text x={748} y={457} fill="#d10a0afd" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>WIREGUARD - 10.10.x.x</text>
 
-              <rect x={730} y={290} width={150} height={155} rx={5} fill="none" stroke="#1784ccd7" strokeDasharray="5 3" strokeWidth={1}/>
-              <text x={803} y={287} fill="#1784ccd7" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>DNS 10.x.x.x</text>
+              <rect x={730} y={290} width={150} height={155} rx={5} fill="none" stroke="#12f312" strokeDasharray="5 3" strokeWidth={1}/>
+              <text x={779} y={287} fill="#12f312" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>DNS - 10.100.x.x</text>
 
               <rect x={730} y={102} width={150} height={172} rx={5} fill="none" stroke="#1fcca9ce" strokeDasharray="5 3" strokeWidth={1}/>
-              <text x={779} y={99} fill="#1fcca9ce" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>STORAGE 10.x.x.x</text>
+              <text x={731} y={99} fill="#1fcca9ce" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>STRG 10.40.x.x - VLAN-40</text>
 
-              <rect x={120} y={515} width={565} height={195} rx={5} fill="none" stroke="#af3ab9e3" strokeDasharray="5 3" strokeWidth={1}/>
-              <text x={534} y={510} fill="#af3ab9e3" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>CALLISTO 40.x.x.x - VLAN</text>
+              <rect x={115} y={515} width={575} height={185} rx={5} fill="none" stroke="#af3ab9e3" strokeDasharray="5 3" strokeWidth={1}/>
+              <text x={530} y={510} fill="#af3ab9e3" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>SRVRS 10.30.x.x - VLAN-30</text>
 
+              <rect x={120} y={520} width={565} height={70} rx={5} fill="none" stroke="#e74c3c" strokeDasharray="5 3" strokeWidth={1}/>
+              <text x={630} y={600} fill="#e74c3c" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>Authentik</text>
+
+              <rect x={120} y={625} width={565} height={70} rx={5} fill="none" stroke="#00d4ff" strokeDasharray="5 3" strokeWidth={1}/>
+              <text x={125} y={620} fill="#00d4ff" fontSize={7} fontFamily="'Courier New', monospace" letterSpacing={2}>Keycloak</text>
+
+              
               {/* Connections */}
               {connections.map((conn, i) => {
                 const from = positions[conn.from];
                 const to = positions[conn.to];
                 if (!from || !to) return null;
                 const isActive = active === conn.from || active === conn.to;
-                const { d, lx, ly } = getElbowPath(from, to, conn.offset || 0);
+                const { d, lx, ly } = getElbowPath(from, to, conn.offset || 0, conn.customRoute);
                 return (
                   <g key={i}>
                     <path
                       d={d}
                       fill="none"
-                      stroke={isActive ? conn.color : conn.color + "88"}
+                      stroke={isActive ? conn.color : "#44444488"}
                       strokeWidth={isActive ? 2 : 1}
                       strokeDasharray={conn.style === "dashed" ? "5 4" : "none"}
-                      markerEnd={`url(#${getArrow(conn.color)})`}
+                      markerEnd={`url(#${isActive ? getArrow(conn.color) : "arr-silver"})`}
                       style={{ transition: "all 0.2s" }}
                     />
                     {conn.label && (
                       <text
                         x={lx + (conn.labelOffsetX || 0)} y={ly}
-                        fill={isActive ? conn.color : conn.color + "88"}
+                        fill={isActive ? conn.color : "#55555599"}
                         fontSize={7} fontFamily="'Courier New', monospace" textAnchor="middle"
                       >
                         {conn.label}
@@ -598,13 +678,14 @@ export default function App() {
           </div>
 
           <div style={{ display:"flex", flexWrap:"wrap", gap: isMobile ? 5 : 16, marginTop: isMobile ? 4 : 10, fontSize: isMobile ? 10 : 20, color:"#e6e1e1", letterSpacing:1, justifyContent:"center", padding: isMobile ? "0 8px" : 0, width: isMobile ? "100%" : undefined, boxSizing:"border-box" }}>
-            <span><span style={{color:"#e85d00"}}>--</span> WAN</span>
+            <span><span style={{color:"#f7f7f7"}}>--</span> WAN</span>
             <span><span style={{color:"#ff6b35"}}>--</span> Proxmox</span>
-            <span><span style={{color:"#2ecc71"}}>--</span> Callisto VLAN</span>
+            <span><span style={{color:"#2ecc71"}}>--</span> Multi VLAN</span>
             <span><span style={{color:"#3498db"}}>--</span> DNS</span>
             <span><span style={{color:"#9b59b6"}}>--</span> WireGuard</span>
             <span><span style={{color:"#e67e22"}}>--</span> Cloudflare</span>
             <span><span style={{color:"#a855f7"}}>--</span> Portainer cluster</span>
+            <span><span style={{color:"#00d4ff"}}>--</span> K3s</span>
             <span><span style={{color:"#16a085"}}>--</span> Storage</span>
           </div>
 

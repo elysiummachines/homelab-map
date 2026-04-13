@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-12
+
+- K3s cluster nodes added to diagram (master + 3 workers) on VLAN-30
+- UniFi U6-Lite access point node with PoE from Cisco SG300
+- Cisco SG300 replaces HP 1810-24G managed switch
+- Multi-VLAN zones: MGMT (VLAN-20), SRVRS (VLAN-30), STRG (VLAN-40)
+- Authentik and Keycloak zone labels on diagram
+- Docker node labels updated to PROD / AGENT / CONNECTORS / LLM/QA
+- Inactive nodes and connections dimmed (grey) — color only on active/hover
+- Particle canvas inter-particle lines changed to neutral grey
+- Updated IP scheme to reflect new VLAN addressing
+
 ## [0.2.1] - 2026-03-15
 
 - Added docker-compose.yaml for lightweight nginx:alpine deployment
